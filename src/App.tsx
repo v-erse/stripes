@@ -137,7 +137,6 @@ function App() {
         position: [0.33, 4.81, 1.36],
       }}
     >
-      <OrbitControls makeDefault />
       <Plane />
     </Canvas>
   );
