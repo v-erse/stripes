@@ -71,7 +71,7 @@ function Plane() {
         (ref.current!.uniforms.color3.value = new THREE.Color(v)),
     },
     backgroundColor: {
-      value: "#000",
+      value: "#fff",
       onChange: (v) => {
         ref.current!.uniforms.backgroundColor.value = new THREE.Color(v);
       },
