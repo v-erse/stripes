@@ -89,12 +89,16 @@ function Plane() {
   }));
 
   useControls("Folds", () => ({
-    frequency: {
+    space: {
       value: 0.05,
+      min: 0,
+      max: 0.5,
       onChange: (v) => (ref.current!.uniforms.foldFrequency.value = v),
     },
     height: {
       value: 3.0,
+      min: -10,
+      max: 10,
       onChange: (v) => (ref.current!.uniforms.foldHeight.value = v),
     },
   }));
@@ -108,8 +112,8 @@ function Plane() {
     },
     speed: {
       value: 1,
-      min: -1.5,
-      max: 1.5,
+      min: -3,
+      max: 3,
       onChange: (v) => (speed.current = v),
     },
   }));
