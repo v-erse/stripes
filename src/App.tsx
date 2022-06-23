@@ -1,5 +1,5 @@
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, OrthographicCamera } from "@react-three/drei";
 import { buttonGroup, useControls } from "leva";
 import * as THREE from "three";
 import { patchShaders } from "gl-noise";
@@ -165,15 +165,55 @@ function Plane() {
 }
 
 function App() {
+  const cameraRef = useRef<any>(null);
+
+  const [values, setCamera] = useControls("Camera", () => ({
+    position: {
+      value: [0.33, 4.81, 1.36],
+      onChange: (v) => {
+        if (cameraRef.current) cameraRef.current.position.set(...v);
+      },
+    },
+    zoom: {
+      value: 2400,
+      min: 400,
+      max: 3000,
+      onChange: (v) => {
+        if (cameraRef.current) {
+          cameraRef.current.zoom = v;
+          cameraRef.current.updateProjectionMatrix();
+        }
+      },
+    },
+    " ": buttonGroup({
+      "view gradient": () => {
+        if (cameraRef.current) {
+          setCamera({ position: [0, 5, 0], zoom: 750 });
+        }
+      },
+      reset: () => {
+        if (cameraRef.current) {
+          setCamera({ position: [0.33, 4.81, 1.36], zoom: 2400 });
+        }
+      },
+    }),
+  }));
+
   return (
-    <Canvas
-      orthographic
-      camera={{
-        zoom: 2400,
-        position: [0.33, 4.81, 1.36],
-      }}
-    >
-      <OrbitControls makeDefault />
+    <Canvas>
+      <OrthographicCamera
+        ref={cameraRef}
+        makeDefault
+        zoom={2400}
+        position={[0.33, 4.81, 1.36]}
+      />
+      <OrbitControls
+        onChange={() => {
+          const { position, zoom } = cameraRef.current;
+          const { x, y, z } = position;
+          setCamera({ position: [x, y, z], zoom });
+        }}
+      />
       <Plane />
     </Canvas>
   );
