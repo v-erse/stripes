@@ -29,6 +29,8 @@ const fragmentShader = `
 
 const vertexShader = `
   uniform float time;
+  uniform float foldFrequency;
+  uniform float foldHeight;
 
   varying vec4 v_modelPosition;
   varying float v_elevation;
@@ -38,7 +40,7 @@ const vertexShader = `
     v_modelPosition = modelMatrix * vec4(position, 1.0);
 
     v_elevation = gln_perlin(v_modelPosition.xz * 2.0 + vec2(0, time)) + 0.5; 
-    v_foldElevation = mod(v_modelPosition.z, 0.05) * 2.0; // BAND WIDTH SHOULD AFFECT SLOPE OF PLANE
+    v_foldElevation = mod(v_modelPosition.z, foldFrequency) * foldHeight; // TODO: BAND WIDTH SHOULD AFFECT SLOPE OF PLANE
 
     v_modelPosition.y += -v_modelPosition.z;
     v_modelPosition.y += v_foldElevation;
@@ -54,7 +56,7 @@ const vertexShader = `
 function Plane() {
   const ref = useRef<any>();
 
-  const [values, set] = useControls(() => ({
+  const [colorValues, setColor] = useControls("Colors", () => ({
     color1: {
       value: "#635bff",
       onChange: (v) =>
@@ -77,8 +79,8 @@ function Plane() {
       },
     },
     " ": buttonGroup({
-      "light mode": () => set({ backgroundColor: "#fff" }),
-      "dark mode": () => set({ backgroundColor: "#000" }),
+      "light mode": () => setColor({ backgroundColor: "#fff" }),
+      "dark mode": () => setColor({ backgroundColor: "#000" }),
     }),
     colorSmoothing: {
       value: 0.5,
@@ -86,8 +88,36 @@ function Plane() {
     },
   }));
 
+  useControls("Folds", () => ({
+    frequency: {
+      value: 0.05,
+      onChange: (v) => (ref.current!.uniforms.foldFrequency.value = v),
+    },
+    height: {
+      value: 2.0,
+      onChange: (v) => (ref.current!.uniforms.foldHeight.value = v),
+    },
+  }));
+
+  const paused = useRef(false);
+  const speed = useRef(1);
+  useControls("Time", () => ({
+    pause: {
+      value: false,
+      onChange: (v) => (paused.current = v),
+    },
+    speed: {
+      value: 1,
+      min: -1.5,
+      max: 1.5,
+      onChange: (v) => (speed.current = v),
+    },
+  }));
+
   useFrame(() => {
-    if (ref.current) ref.current.uniforms.time.value += 0.001;
+    if (ref.current && !paused.current) {
+      ref.current.uniforms.time.value += 0.001 * speed.current;
+    }
   });
 
   return (
@@ -115,6 +145,12 @@ function Plane() {
               colorSmoothing: {
                 value: 0.5,
               },
+              foldFrequency: {
+                value: 0.5,
+              },
+              foldHeight: {
+                value: 2.0,
+              },
               time: {
                 value: 0,
               },
@@ -137,6 +173,7 @@ function App() {
         position: [0.33, 4.81, 1.36],
       }}
     >
+      <OrbitControls makeDefault />
       <Plane />
     </Canvas>
   );
