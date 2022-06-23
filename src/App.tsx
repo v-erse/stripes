@@ -40,7 +40,7 @@ const vertexShader = `
     v_modelPosition = modelMatrix * vec4(position, 1.0);
 
     v_elevation = gln_perlin(v_modelPosition.xz * 2.0 + vec2(0, time)) + 0.5; 
-    v_foldElevation = mod(v_modelPosition.z, foldFrequency) * foldHeight; // TODO: BAND WIDTH SHOULD AFFECT SLOPE OF PLANE
+    v_foldElevation = mod(v_modelPosition.z, foldFrequency) * foldHeight;
 
     v_modelPosition.y += -v_modelPosition.z;
     v_modelPosition.y += v_foldElevation;
@@ -94,7 +94,7 @@ function Plane() {
       onChange: (v) => (ref.current!.uniforms.foldFrequency.value = v),
     },
     height: {
-      value: 2.0,
+      value: 3.0,
       onChange: (v) => (ref.current!.uniforms.foldHeight.value = v),
     },
   }));
@@ -149,7 +149,7 @@ function Plane() {
                 value: 0.5,
               },
               foldHeight: {
-                value: 2.0,
+                value: 3.0,
               },
               time: {
                 value: 0,
