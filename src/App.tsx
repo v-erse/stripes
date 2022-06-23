@@ -1,6 +1,6 @@
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, OrthographicCamera } from "@react-three/drei";
-import { buttonGroup, useControls } from "leva";
+import { button, buttonGroup, useControls } from "leva";
 import * as THREE from "three";
 import { patchShaders } from "gl-noise";
 import { useRef } from "react";
@@ -120,6 +120,21 @@ function Plane() {
     }
   });
 
+  const gl = useThree((state) => state.gl);
+  useControls(() => ({
+    "Save PNG": button(() => {
+      const link = document.createElement("a");
+      link.setAttribute("download", "waves.png");
+      link.setAttribute(
+        "href",
+        gl.domElement
+          .toDataURL("image/png")
+          .replace("image/png", "image/octet-stream")
+      );
+      link.click();
+    }),
+  }));
+
   return (
     <mesh rotation={[-1.75, 0, 0]}>
       <planeGeometry args={[1, 1, 100, 100]} />
@@ -185,22 +200,20 @@ function App() {
         }
       },
     },
-    " ": buttonGroup({
-      "view gradient": () => {
-        if (cameraRef.current) {
-          setCamera({ position: [0, 5, 0], zoom: 750 });
-        }
-      },
-      reset: () => {
-        if (cameraRef.current) {
-          setCamera({ position: [0.33, 4.81, 1.36], zoom: 2400 });
-        }
-      },
+    "view gradient": button(() => {
+      if (cameraRef.current) {
+        setCamera({ position: [0, 5, 0], zoom: 750 });
+      }
+    }),
+    "reset camera": button(() => {
+      if (cameraRef.current) {
+        setCamera({ position: [0.33, 4.81, 1.36], zoom: 2400 });
+      }
     }),
   }));
 
   return (
-    <Canvas>
+    <Canvas gl={{ preserveDrawingBuffer: true }}>
       <OrthographicCamera
         ref={cameraRef}
         makeDefault
