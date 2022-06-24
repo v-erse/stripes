@@ -31,6 +31,9 @@ const vertexShader = `
   uniform float time;
   uniform float foldFrequency;
   uniform float foldHeight;
+  uniform float waveFrequency;
+  uniform float waveAmplitude;
+  uniform vec2 waveDirection;
 
   varying vec4 v_modelPosition;
   varying float v_elevation;
@@ -39,7 +42,7 @@ const vertexShader = `
   void main() {
     v_modelPosition = modelMatrix * vec4(position, 1.0);
 
-    v_elevation = gln_perlin(v_modelPosition.xz * 2.0 + vec2(0, time)) + 0.5; 
+    v_elevation = gln_perlin((v_modelPosition.xz * waveFrequency) + (waveDirection * time)) * waveAmplitude + 0.5; 
     v_foldElevation = mod(v_modelPosition.z, foldFrequency) * foldHeight;
 
     v_modelPosition.y += -v_modelPosition.z;
@@ -54,15 +57,20 @@ const vertexShader = `
 `;
 
 const defaults = {
-  cameraPosition: [0.47, 4.93, 0.78] as [number, number, number],
+  cameraPosition: [0.3, 4.8, 1.43] as [number, number, number],
   cameraZoom: 2205,
   color1: "#635bff",
   color2: "#ff39a9",
   color3: "#ffbc13",
   backgroundColor: "#fff",
   colorSmoothing: 0.5,
-  foldsSpace: 0.05,
-  foldsHeight: 3.8,
+  foldsSpace: 0.06,
+  foldsHeight: 3.2,
+  waveFrequency: 1.2,
+  waveAmplitude: 0.83,
+  waveDirection: [-0.1, 1] as [number, number],
+  pause: false,
+  speed: 1.5,
 };
 
 function Plane() {
@@ -102,6 +110,22 @@ function Plane() {
     },
   }));
 
+  useControls("Waves", () => ({
+    waveFrequency: {
+      value: defaults.waveFrequency,
+      onChange: (v) => (ref.current!.uniforms.waveFrequency.value = v),
+    },
+    waveAmplitude: {
+      value: defaults.waveAmplitude,
+      onChange: (v) => (ref.current!.uniforms.waveAmplitude.value = v),
+    },
+    waveDirection: {
+      value: defaults.waveDirection,
+      onChange: (v) =>
+        (ref.current!.uniforms.waveDirection.value = new THREE.Vector2(...v)),
+    },
+  }));
+
   useControls("Folds", () => ({
     space: {
       value: defaults.foldsSpace,
@@ -121,11 +145,11 @@ function Plane() {
   const speed = useRef(1);
   useControls("Time", () => ({
     pause: {
-      value: false,
+      value: defaults.pause,
       onChange: (v) => (paused.current = v),
     },
     speed: {
-      value: 1,
+      value: defaults.speed,
       min: -3,
       max: 3,
       onChange: (v) => (speed.current = v),
@@ -182,6 +206,15 @@ function Plane() {
               },
               foldHeight: {
                 value: defaults.foldsHeight,
+              },
+              waveFrequency: {
+                value: defaults.waveFrequency,
+              },
+              waveAmplitude: {
+                value: defaults.waveAmplitude,
+              },
+              waveDirection: {
+                value: new THREE.Vector2(...defaults.waveDirection),
               },
               time: {
                 value: 0,
