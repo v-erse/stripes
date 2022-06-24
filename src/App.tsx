@@ -55,6 +55,7 @@ const vertexShader = `
 
 function Plane() {
   const ref = useRef<any>();
+  const gl = useThree((state) => state.gl);
 
   const [colorValues, setColor] = useControls("Colors", () => ({
     color1: {
@@ -76,6 +77,7 @@ function Plane() {
       value: "#fff",
       onChange: (v) => {
         ref.current!.uniforms.backgroundColor.value = new THREE.Color(v);
+        gl.setClearColor(v);
       },
     },
     " ": buttonGroup({
@@ -124,7 +126,6 @@ function Plane() {
     }
   });
 
-  const gl = useThree((state) => state.gl);
   useControls(() => ({
     "Save PNG": button(() => {
       const link = document.createElement("a");
