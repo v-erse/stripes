@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, OrthographicCamera } from "@react-three/drei";
-import { button, buttonGroup, useControls } from "leva";
+import { button, buttonGroup, Leva, useControls } from "leva";
 import * as THREE from "three";
 import { patchShaders } from "gl-noise";
 import { useRef } from "react";
@@ -53,23 +53,35 @@ const vertexShader = `
   }
 `;
 
+const defaults = {
+  cameraPosition: [0.47, 4.93, 0.78] as [number, number, number],
+  cameraZoom: 2205,
+  color1: "#635bff",
+  color2: "#ff39a9",
+  color3: "#ffbc13",
+  backgroundColor: "#fff",
+  colorSmoothing: 0.5,
+  foldsSpace: 0.05,
+  foldsHeight: 3.8,
+};
+
 function Plane() {
   const ref = useRef<any>();
   const gl = useThree((state) => state.gl);
 
   const [colorValues, setColor] = useControls("Colors", () => ({
     color1: {
-      value: "#635bff",
+      value: defaults.color1,
       onChange: (v) =>
         (ref.current!.uniforms.color1.value = new THREE.Color(v)),
     },
     color2: {
-      value: "#ff39a9",
+      value: defaults.color2,
       onChange: (v) =>
         (ref.current!.uniforms.color2.value = new THREE.Color(v)),
     },
     color3: {
-      value: "#ffbc13",
+      value: defaults.color3,
       onChange: (v) =>
         (ref.current!.uniforms.color3.value = new THREE.Color(v)),
     },
@@ -85,20 +97,20 @@ function Plane() {
       "dark mode": () => setColor({ backgroundColor: "#000" }),
     }),
     colorSmoothing: {
-      value: 0.5,
+      value: defaults.colorSmoothing,
       onChange: (v) => (ref.current!.uniforms.colorSmoothing.value = v),
     },
   }));
 
   useControls("Folds", () => ({
     space: {
-      value: 0.05,
+      value: defaults.foldsSpace,
       min: 0,
       max: 0.5,
       onChange: (v) => (ref.current!.uniforms.foldFrequency.value = v),
     },
     height: {
-      value: 3.0,
+      value: defaults.foldsHeight,
       min: -10,
       max: 10,
       onChange: (v) => (ref.current!.uniforms.foldHeight.value = v),
@@ -151,25 +163,25 @@ function Plane() {
           {
             uniforms: {
               color1: {
-                value: new THREE.Color("#635bff"),
+                value: new THREE.Color(defaults.color1),
               },
               color2: {
-                value: new THREE.Color("#ff39a9"),
+                value: new THREE.Color(defaults.color2),
               },
               color3: {
-                value: new THREE.Color("#ffbc13"),
+                value: new THREE.Color(defaults.color3),
               },
               backgroundColor: {
                 value: new THREE.Color("#ffffff"),
               },
               colorSmoothing: {
-                value: 0.5,
+                value: defaults.colorSmoothing,
               },
               foldFrequency: {
-                value: 0.5,
+                value: defaults.foldsSpace,
               },
               foldHeight: {
-                value: 3.0,
+                value: defaults.foldsHeight,
               },
               time: {
                 value: 0,
@@ -189,13 +201,13 @@ function App() {
 
   const [values, setCamera] = useControls("Camera", () => ({
     position: {
-      value: [0.33, 4.81, 1.36],
+      value: defaults.cameraPosition,
       onChange: (v) => {
         if (cameraRef.current) cameraRef.current.position.set(...v);
       },
     },
     zoom: {
-      value: 2400,
+      value: defaults.cameraZoom,
       min: 400,
       max: 3000,
       onChange: (v) => {
@@ -212,28 +224,34 @@ function App() {
     }),
     "reset camera": button(() => {
       if (cameraRef.current) {
-        setCamera({ position: [0.33, 4.81, 1.36], zoom: 2400 });
+        setCamera({
+          position: defaults.cameraPosition,
+          zoom: defaults.cameraZoom,
+        });
       }
     }),
   }));
 
   return (
-    <Canvas gl={{ preserveDrawingBuffer: true }}>
-      <OrthographicCamera
-        ref={cameraRef}
-        makeDefault
-        zoom={2400}
-        position={[0.33, 4.81, 1.36]}
-      />
-      <OrbitControls
-        onChange={() => {
-          const { position, zoom } = cameraRef.current;
-          const { x, y, z } = position;
-          setCamera({ position: [x, y, z], zoom });
-        }}
-      />
-      <Plane />
-    </Canvas>
+    <>
+      <Leva collapsed />
+      <Canvas gl={{ preserveDrawingBuffer: true }}>
+        <OrthographicCamera
+          ref={cameraRef}
+          makeDefault
+          zoom={defaults.cameraZoom}
+          position={defaults.cameraPosition}
+        />
+        <OrbitControls
+          onChange={() => {
+            const { position, zoom } = cameraRef.current;
+            const { x, y, z } = position;
+            setCamera({ position: [x, y, z], zoom });
+          }}
+        />
+        <Plane />
+      </Canvas>
+    </>
   );
 }
 
